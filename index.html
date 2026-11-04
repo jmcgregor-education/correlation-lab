@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Unit 3.3 Lab: Correlating the Llano Seco Basin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f5f0; --surface:#ffffff; --surface-2:#eef2f1; --line:#d5dad8;
+  --ink:#1f2a33; --muted:#5d6872;
+  --teal:#137a71; --teal-soft:#e2f1ef; --gold:#94660a; --gold-soft:#fbf5e6; --ember:#b5461f; --ember-soft:#fbefe9;
+  --serif:"Fraunces", Georgia, "Times New Roman", serif;
+  --sans:"IBM Plex Sans", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:1.0625rem;line-height:1.6}
+a{color:var(--teal)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:4px}
+button{font:inherit;cursor:pointer}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+header.top{background:#efe9dc;border-bottom:1px solid var(--line)}
+.top-inner{max-width:64rem;margin:0 auto;padding:1.75rem 1.25rem 0}
+.course{color:var(--muted);font-size:.95rem;margin:0 0 .35rem}
+h1{font-family:var(--serif);font-weight:700;font-size:clamp(1.9rem,4.4vw,2.9rem);line-height:1.08;margin:0 0 1.1rem;letter-spacing:-.01em}
+nav.tabs{display:flex;gap:.25rem;overflow-x:auto;margin:0 -1.25rem;padding:0 1.25rem}
+.tab{border:1px solid transparent;border-bottom:none;background:none;color:var(--muted);padding:.6rem .95rem;border-radius:8px 8px 0 0;white-space:nowrap;font-size:.97rem}
+.tab[aria-selected="true"]{background:var(--bg);color:var(--ink);border-color:var(--line);font-weight:600}
+.tab:disabled{opacity:.45;cursor:not-allowed}
+.tab .lock{font-size:.8rem;margin-left:.3rem}
+
+main{max-width:64rem;margin:0 auto;padding:2rem 1.25rem 4rem}
+.panel[hidden]{display:none}
+h2{font-family:var(--serif);font-weight:600;font-size:clamp(1.5rem,3vw,2rem);line-height:1.15;margin:0 0 .75rem}
+h3{font-family:var(--serif);font-weight:600;font-size:1.25rem;margin:1.75rem 0 .5rem}
+p{margin:0 0 1rem}
+.measure{max-width:44rem}
+.muted{color:var(--muted)}
+strong{font-weight:600}
+
+.btn{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:.5rem .95rem;font-size:.96rem}
+.btn:hover{border-color:var(--teal)}
+.btn.primary{background:var(--teal);color:#fff;border-color:var(--teal);font-weight:600}
+.btn.primary:hover{background:#0f6159}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin:1rem 0}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1.1rem 1.25rem;margin:1rem 0}
+.callout{background:var(--teal-soft);border-left:4px solid var(--teal);border-radius:0 8px 8px 0;padding:.9rem 1.15rem;margin:1rem 0}
+.callout.gold{background:var(--gold-soft);border-left-color:var(--gold)}
+.callout p:last-child{margin-bottom:0}
+.steps{margin:0;padding-left:1.25rem}
+.steps li{margin-bottom:.4rem}
+
+/* Map */
+.map svg{display:block;width:100%;max-width:640px;height:auto}
+
+/* Field sites */
+.field{display:grid;grid-template-columns:minmax(0,1fr) 17rem;gap:1.25rem;align-items:start}
+@media (max-width:900px){.field{grid-template-columns:minmax(0,1fr)}}
+.svg-wrap{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.5rem;overflow-x:auto}
+.svg-wrap svg{display:block;min-width:620px;width:100%;height:auto}
+.layer{cursor:pointer}
+.layer-hit{fill:transparent;cursor:pointer}
+.layer-hit:hover{fill:rgba(19,122,113,.12)}
+.layer-hit.sel{fill:rgba(227,178,77,.25);stroke:#94660a;stroke-width:3}
+.tie{stroke:#137a71;stroke-width:3;fill:none;pointer-events:none}
+.tie.bad{stroke:#b5461f;stroke-dasharray:6 4}
+.tie.good{stroke:#137a71}
+.tie-hit{stroke:transparent;stroke-width:14;fill:none;cursor:pointer}
+.info{position:sticky;top:1rem}
+.info h4{font-family:var(--serif);font-size:1.1rem;margin:0 0 .35rem}
+.info .rock{color:var(--gold);font-weight:600;margin:0 0 .35rem}
+.info ul{margin:.25rem 0 .5rem;padding-left:1.1rem}
+.info .hint{font-size:.92rem;color:var(--muted);margin:0}
+.feedback{border-radius:8px;padding:.8rem 1rem;margin:1rem 0;font-size:.98rem}
+.feedback.ok{background:var(--teal-soft);border:1px solid var(--teal)}
+.feedback.no{background:var(--ember-soft);border:1px solid var(--ember)}
+.feedback ul{margin:.35rem 0 0;padding-left:1.15rem}
+.attempts{font-size:.9rem;color:var(--muted)}
+
+/* MC questions */
+.q{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1rem 1.15rem;margin:1rem 0}
+.q p.stem{margin:0 0 .7rem;font-weight:500}
+.opts{display:flex;flex-direction:column;gap:.4rem}
+.opt{text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:.55rem .8rem;color:var(--ink);display:flex;gap:.6rem}
+.opt b{color:var(--muted);font-weight:600;min-width:1.1rem}
+.opt:hover:not(:disabled){border-color:var(--teal)}
+.opt.wrong{border-color:var(--ember);background:var(--ember-soft)}
+.opt.right{border-color:var(--teal);background:var(--teal-soft)}
+.opt:disabled{cursor:default}
+.q .fb{margin:.6rem 0 0;font-size:.96rem}
+
+/* Composite builder */
+.builder{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.25rem;align-items:start}
+@media (max-width:760px){.builder{grid-template-columns:minmax(0,1fr)}}
+.tray{display:flex;flex-direction:column;gap:.45rem}
+.unit{display:flex;align-items:center;gap:.6rem;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:.45rem .7rem;color:var(--ink);min-height:3rem;width:100%}
+.unit svg{flex:0 0 40px;width:40px;height:28px}
+.unit.picked{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold)}
+.unit:disabled{opacity:.4;cursor:default}
+.stack{display:flex;flex-direction:column;gap:.3rem}
+.slot{display:flex;align-items:center;gap:.6rem;min-height:3rem;border:2px dashed var(--line);border-radius:8px;padding:.35rem .6rem;background:var(--surface);color:var(--muted);text-align:left;width:100%}
+.slot .n{font-size:.8rem;min-width:4.6rem;color:var(--muted)}
+.slot.filled{border-style:solid;color:var(--ink)}
+.slot.locked{border-color:var(--teal);background:var(--teal-soft);cursor:default}
+.slot.bounce{border-color:var(--ember);background:var(--ember-soft)}
+.slot svg{flex:0 0 40px;width:40px;height:28px}
+.stack-label{font-size:.88rem;color:var(--muted);margin:.2rem 0}
+
+/* Range chart */
+.chart-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.75rem}
+.chart-wrap svg{display:block;min-width:640px;width:100%;height:auto}
+table.assign{border-collapse:collapse;width:100%;margin:.5rem 0}
+.assign th,.assign td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid var(--line);vertical-align:middle}
+.assign th{font-size:.88rem;color:var(--muted);font-weight:600}
+.assign select{font:inherit;padding:.35rem .5rem;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);min-width:9.5rem}
+.assign tr.locked td{background:var(--teal-soft)}
+.assign tr.wrongrow td{background:var(--ember-soft)}
+.assign .mini{display:inline-flex;align-items:center;gap:.5rem}
+.assign .mini svg{width:36px;height:24px}
+.table-wrap{overflow-x:auto}
+
+/* Your time scale */
+.ts-col{display:flex;flex-direction:column;gap:2px;max-width:30rem;margin:.75rem 0}
+.ts-row{display:flex;justify-content:space-between;gap:1rem;padding:.45rem .7rem;border-radius:4px;font-size:.95rem;color:#1f2a33}
+.ts-row .age{font-weight:600}
+
+/* Report */
+.rep-head{display:flex;flex-wrap:wrap;gap:.75rem 1.5rem;align-items:flex-end;margin-bottom:1rem}
+.rep-head label{display:flex;flex-direction:column;font-size:.88rem;color:var(--muted);gap:.2rem}
+.rep-head input{font:inherit;color:var(--ink);padding:.45rem .65rem;border:1px solid var(--line);border-radius:6px;min-width:14rem;background:var(--surface)}
+.score-big{font-family:var(--serif);font-size:2.6rem;font-weight:700;line-height:1;color:var(--teal)}
+table.score{border-collapse:collapse;width:100%;max-width:40rem}
+.score td,.score th{padding:.4rem .5rem;border-bottom:1px solid var(--line);text-align:left;font-size:.96rem}
+.score td.pts,.score th.pts{text-align:right;white-space:nowrap}
+.score tr.total td{font-weight:700;border-bottom:none}
+.rep-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:1.25rem;margin-top:1rem}
+@media (max-width:760px){.rep-grid{grid-template-columns:minmax(0,1fr)}}
+.rep-snap svg{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fff}
+.rep-note{font-size:.9rem;color:var(--muted)}
+
+@media print{
+  @page{margin:.5in}
+  body{background:#fff;font-size:10pt}
+  header.top,.no-print,.panel:not(#p-report){display:none!important}
+  #p-report{display:block!important}
+  main{padding:0;max-width:none}
+  .rep-head input{border:none;border-bottom:1px solid #999;border-radius:0;padding:0 .2rem}
+  .rep-grid{grid-template-columns:1.3fr 1fr}
+  .ts-row{padding:.2rem .5rem;font-size:9pt}
+  .score td,.score th{padding:.2rem .4rem;font-size:9.5pt}
+  h2{font-size:16pt}
+  .card{break-inside:avoid}
+  .ts-row,.rep-snap svg,.score-big{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  :focus{outline:none!important}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <p class="course">Earth Systems Science, Unit 3.3 Lab</p>
+    <h1>Correlating the Llano Seco Basin</h1>
+    <nav class="tabs" role="tablist" aria-label="Lab sections">
+      <button class="tab" role="tab" data-tab="intro" aria-selected="true">Start here</button>
+      <button class="tab" role="tab" data-tab="inv1" aria-selected="false">1. Correlate</button>
+      <button class="tab" role="tab" data-tab="inv2" aria-selected="false" disabled>2. Composite<span class="lock" aria-hidden="true">🔒</span></button>
+      <button class="tab" role="tab" data-tab="inv3" aria-selected="false" disabled>3. Name it<span class="lock" aria-hidden="true">🔒</span></button>
+      <button class="tab" role="tab" data-tab="report" aria-selected="false">Lab report</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ================= INTRO ================= -->
+<section class="panel" id="p-intro" role="tabpanel">
+  <h2>Your assignment</h2>
+  <div class="measure">
+    <p>You’ve been hired to map the rocks of the Llano Seco Basin. The basin is flat and covered with soil, so the rock layers only show up in four places: a ridge, a creek bank, a quarry, and a river bluff. They’re miles apart, and no single one shows the whole story.</p>
+    <p>Your job is to do what geologists did in the 1800s: match the layers between sites, piece them into one complete sequence, and then figure out which parts of the geologic time scale this basin records.</p>
+  </div>
+
+  <div class="card map">
+    <svg viewBox="0 0 640 230" role="img" aria-label="Map of the Llano Seco Basin with four outcrops from west to east: Site 1 Ridge, Site 2 Creek, Site 3 Quarry, Site 4 Bluff">
+      <rect width="640" height="230" rx="8" fill="#efe9dc"/>
+      <path d="M0 170 C120 150 200 190 320 165 S520 140 640 160" fill="none" stroke="#7fa7b8" stroke-width="5"/>
+      <path d="M210 0 C230 60 200 110 240 165" fill="none" stroke="#7fa7b8" stroke-width="3"/>
+      <g fill="#c9bfa6" opacity=".7"><path d="M40 120 l25 -40 l25 40z"/><path d="M75 125 l20 -32 l20 32z"/></g>
+      <g font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#1f2a33">
+        <g transform="translate(80 140)"><circle r="9" fill="#137a71"/><text x="0" y="4.5" text-anchor="middle" fill="#fff" font-weight="600" font-size="11">1</text><text x="0" y="28" text-anchor="middle">Ridge</text></g>
+        <g transform="translate(240 120)"><circle r="9" fill="#137a71"/><text x="0" y="4.5" text-anchor="middle" fill="#fff" font-weight="600" font-size="11">2</text><text x="0" y="28" text-anchor="middle">Creek</text></g>
+        <g transform="translate(400 95)"><circle r="9" fill="#137a71"/><text x="0" y="4.5" text-anchor="middle" fill="#fff" font-weight="600" font-size="11">3</text><text x="0" y="28" text-anchor="middle">Quarry</text></g>
+        <g transform="translate(560 130)"><circle r="9" fill="#137a71"/><text x="0" y="4.5" text-anchor="middle" fill="#fff" font-weight="600" font-size="11">4</text><text x="0" y="28" text-anchor="middle">Bluff</text></g>
+        <text x="20" y="215" fill="#5d6872" font-size="12">West</text><text x="620" y="215" text-anchor="end" fill="#5d6872" font-size="12">East</text>
+      </g>
+    </svg>
+    <p class="muted" style="margin:.5rem 0 0;font-size:.92rem">The Llano Seco Basin and its rocks are made up for this lab, but the fossils are real index fossils.</p>
+  </div>
+
+  <h3>How the lab works</h3>
+  <ol class="steps measure">
+    <li><strong>Correlate.</strong> Connect layers that formed at the same time across neighboring sites.</li>
+    <li><strong>Composite.</strong> Stack every unit into one complete column, oldest at the bottom.</li>
+    <li><strong>Name it.</strong> Use a fossil range chart and two dated ash beds to label your column with periods and ages.</li>
+    <li><strong>Lab report.</strong> Your score updates as you go. When you finish, save it as a PDF and turn it in.</li>
+  </ol>
+  <div class="callout gold measure"><p>Each section unlocks when you finish the one before it. You can retry anything, but first-try answers earn the most points.</p></div>
+  <div class="row"><button class="btn primary" data-go="inv1">Start Investigation 1</button></div>
+</section>
+
+<!-- ================= INV 1 ================= -->
+<section class="panel" id="p-inv1" role="tabpanel" hidden>
+  <h2>Investigation 1: Correlate the sites</h2>
+  <div class="measure">
+    <p>Here are the four outcrops, drawn as stratigraphic columns. Select any layer to see what it’s made of and what fossils it holds.</p>
+    <p><strong>To connect two layers:</strong> select a layer, then select a layer in a <em>neighboring</em> site. A tie line appears. Select a tie line to remove it. When you think every match is made, check your work.</p>
+  </div>
+
+  <div class="field">
+    <div class="svg-wrap"><svg id="sites" viewBox="0 0 760 350" role="group" aria-label="Four stratigraphic columns"></svg></div>
+    <aside class="card info" id="info" aria-live="polite"></aside>
+  </div>
+
+  <div class="row">
+    <button class="btn primary" id="check1">Check my correlations</button>
+    <button class="btn" id="clear1">Clear all ties</button>
+    <span class="attempts" id="att1"></span>
+  </div>
+  <div id="fb1"></div>
+  <div id="disc1"></div>
+</section>
+
+<!-- ================= INV 2 ================= -->
+<section class="panel" id="p-inv2" role="tabpanel" hidden>
+  <h2>Investigation 2: Build the composite column</h2>
+  <div class="measure">
+    <p>None of the four sites has every layer, but together they do. Use your correlations to stack every unit from the basin into one <strong>composite column</strong>, oldest at the bottom.</p>
+    <p><strong>To place a unit:</strong> select it on the left, then select a slot on the right. Select a filled slot to send its unit back.</p>
+  </div>
+  <div class="card" style="padding:.75rem">
+    <p class="muted" style="margin:0 0 .4rem;font-size:.92rem">Your correlated sites, for reference:</p>
+    <div class="svg-wrap" style="border:none;padding:0"><svg id="sitesRef" viewBox="0 0 760 350" aria-label="Your correlated sites"></svg></div>
+  </div>
+  <div class="builder">
+    <div><h3 style="margin-top:.5rem">Units</h3><div class="tray" id="tray"></div></div>
+    <div><h3 style="margin-top:.5rem">Composite column</h3><p class="stack-label">Youngest (top)</p><div class="stack" id="stack"></div><p class="stack-label">Oldest (bottom)</p></div>
+  </div>
+  <div class="row">
+    <button class="btn primary" id="check2">Check my column</button>
+    <span class="attempts" id="att2"></span>
+  </div>
+  <div id="fb2"></div>
+</section>
+
+<!-- ================= INV 3 ================= -->
+<section class="panel" id="p-inv3" role="tabpanel" hidden>
+  <h2>Investigation 3: Put names and numbers on it</h2>
+  <div class="measure">
+    <p>Your composite column puts the basin’s history in order. Now you’ll connect it to the global geologic time scale, the same way geologists do: <strong>fossils tell you the period</strong>, and <strong>dated volcanic ash tells you the numbers</strong>.</p>
+  </div>
+
+  <h3>Part A: Read the range chart</h3>
+  <p class="measure">A range chart shows when each fossil species lived. A bar means the species existed during those periods. Use it to identify the period of each fossil zone in your column.</p>
+  <div class="chart-wrap"><svg id="range" viewBox="0 0 760 350" role="img" aria-label="Fossil range chart"></svg></div>
+  <div class="table-wrap">
+  <table class="assign" id="assign">
+    <thead><tr><th>Fossil zone (from your column)</th><th>Period</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  </div>
+  <div class="row">
+    <button class="btn primary" id="check3">Check periods</button>
+    <span class="attempts" id="att3"></span>
+  </div>
+  <div id="fb3"></div>
+
+  <div id="partB" hidden>
+    <h3>Part B: Add the numbers</h3>
+    <div class="callout measure">
+      <p>Volcanic ash falls over a huge area in a matter of days, and it contains crystals that can be dated with radiometric dating. Lab results for the basin’s two ash beds:</p>
+      <p style="margin:0"><strong>Ash A:</strong> 310 million years old &nbsp; · &nbsp; <strong>Ash B:</strong> 120 million years old</p>
+    </div>
+    <p class="measure">Here’s your column with periods and dates added. Use it, and the principle of superposition, for the questions below.</p>
+    <div class="ts-col" id="tscol"></div>
+    <div id="mc3"></div>
+  </div>
+
+  <div id="wrapup" hidden>
+    <h3>Wrap-up</h3>
+    <div id="mcw"></div>
+    <div class="row"><button class="btn primary" data-go="report">Open my lab report</button></div>
+  </div>
+</section>
+
+<!-- ================= REPORT ================= -->
+<section class="panel" id="p-report" role="tabpanel" hidden>
+  <h2>Lab report: Correlating the Llano Seco Basin</h2>
+  <div class="rep-head">
+    <label>Name<input id="rname" type="text" autocomplete="name"></label>
+    <label>Date<input id="rdate" type="text"></label>
+    <div><div class="score-big" id="rscore">0</div><div class="muted" style="font-size:.88rem">out of 100</div></div>
+  </div>
+  <p class="no-print muted" id="rstatus"></p>
+  <table class="score" id="rtable"></table>
+  <div class="rep-grid">
+    <div><h3 style="margin-top:.5rem">My correlations</h3><div class="rep-snap" id="rsnap"></div></div>
+    <div><h3 style="margin-top:.5rem">My time scale</h3><div class="ts-col" id="rts"></div></div>
+  </div>
+  <p class="rep-note">First-try answers earn full points. Retries earn partial credit.</p>
+  <div class="row no-print">
+    <button class="btn primary" id="print">Print or save as PDF</button>
+  </div>
+  <p class="no-print muted measure" style="font-size:.92rem">In the print window, choose <strong>Save as PDF</strong> as the destination, then upload the PDF to the lab assignment in Google Classroom.</p>
+</section>
+
+</main>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= DATA ================= */
+// Fossil-bearing units. key = correlation identity.
+var UNITS = {
+  Z1:{name:"Olenellus zone", fossil:"Olenellus (trilobite)", icon:"tri", period:"Cambrian"},
+  Z2:{name:"Didymograptus zone", fossil:"Didymograptus (graptolite)", icon:"grap", period:"Ordovician"},
+  Z3:{name:"Mucrospirifer zone", fossil:"Mucrospirifer (brachiopod)", icon:"brach", period:"Devonian"},
+  Z4:{name:"Parafusulina zone", fossil:"Parafusulina (fusulinid)", icon:"fus", period:"Permian"},
+  Z5:{name:"Dactylioceras zone", fossil:"Dactylioceras (coiled ammonite)", icon:"amm", period:"Jurassic"},
+  Z6:{name:"Scaphites zone", fossil:"Scaphites (hook-shaped ammonite)", icon:"scaph", period:"Cretaceous"},
+  AA:{name:"Ash A", fossil:null, icon:"ash", ash:true, age:310, print:"Gray ash packed with dark, flaky biotite (mica) crystals"},
+  AB:{name:"Ash B", fossil:null, icon:"ash", ash:true, age:120, print:"Pale ash with glassy shards and pink feldspar crystals"},
+  BS:{name:"Fossil-free sandstone", fossil:null, icon:"none"}
+};
+var ORDER = ["Z1","Z2","Z3","AA","Z4","Z5","AB","Z6","BS"]; // oldest -> youngest
+var ROCK = {sand:"Sandstone", shale:"Shale", lime:"Limestone", ash:"Volcanic ash"};
+
+// Sites: layers bottom -> top. crin = crinoid stems also present.
+var SITES = [
+  {name:"Site 1: Ridge", base:300, layers:[
+    {k:"Z1",rock:"sand",h:62},{k:"Z2",rock:"shale",h:52,crin:true},{k:"Z3",rock:"lime",h:58,crin:true},{k:"AA",rock:"ash",h:16},{k:"Z4",rock:"lime",h:62,crin:true}]},
+  {name:"Site 2: Creek", base:260, layers:[
+    {k:"Z2",rock:"shale",h:48},{k:"Z3",rock:"sand",h:62,crin:true},{k:"AA",rock:"ash",h:16,unc:true},{k:"Z5",rock:"shale",h:58}]},
+  {name:"Site 3: Quarry", base:250, layers:[
+    {k:"Z3",rock:"shale",h:44},{k:"Z4",rock:"lime",h:58,crin:true},{k:"Z5",rock:"lime",h:52},{k:"AB",rock:"ash",h:16},{k:"Z6",rock:"shale",h:56}]},
+  {name:"Site 4: Bluff", base:320, layers:[
+    {k:"Z5",rock:"sand",h:52},{k:"AB",rock:"ash",h:16},{k:"Z6",rock:"sand",h:52},{k:"BS",rock:"sand",h:46}]}
+];
+var COLX = [50,240,430,620], COLW = 100;
+// compute y positions
+SITES.forEach(function(s){
+  var y = s.base;
+  s.layers.forEach(function(L){ L.y1 = y; y -= L.h; L.y0 = y; L.mid = (L.y0+L.y1)/2; });
+  s.top = y;
+});
+// Expected ties between adjacent sites
+var EXPECTED = [];
+for (var i=0;i<SITES.length-1;i++){
+  SITES[i].layers.forEach(function(A, ai){
+    SITES[i+1].layers.forEach(function(B, bi){
+      if (A.k === B.k && A.k !== "BS") EXPECTED.push(i+":"+ai+"|"+(i+1)+":"+bi);
+    });
+  });
+}
+
+var PERIODS = ["Cambrian","Ordovician","Silurian","Devonian","Carboniferous","Permian","Triassic","Jurassic","Cretaceous","Paleogene","Neogene","Quaternary"];
+var PCOL = {Cambrian:"#7FA056",Ordovician:"#009270",Silurian:"#B3E1B6",Devonian:"#CB8C37",Carboniferous:"#67A599",Permian:"#F04028",Triassic:"#812B92",Jurassic:"#34B2C9",Cretaceous:"#7FC64E",Paleogene:"#FD9A52",Neogene:"#FFE619",Quaternary:"#F9F97F"};
+// Range chart: [label, startIdx, endIdx, icon, inLab]
+var RANGES = [
+  ["Olenellus (trilobite)",0,0,"tri"],
+  ["Didymograptus (graptolite)",1,1,"grap"],
+  ["Crinoids (stems)",1,11,"crin"],
+  ["Mucrospirifer (brachiopod)",3,3,"brach"],
+  ["Parafusulina (fusulinid)",5,5,"fus"],
+  ["Dactylioceras (coiled ammonite)",7,7,"amm"],
+  ["Scaphites (hook-shaped ammonite)",8,8,"scaph"]
+];
+
+/* Multiple-choice questions. Correct letters spread: C, A, B, D, A, D, C */
+var MC = {
+  d1:{pts:5, stem:"At Site 1 the Mucrospirifer zone is limestone, but at Site 2 the same zone is sandstone. What’s the best explanation?",
+      opts:["Rivers carried the Mucrospirifer fossils from Site 1 to Site 2.","The sandstone at Site 2 is much younger than the limestone at Site 1.","Different environments, like a sandy shoreline and a shallow sea, were building different rocks at the same time.","Limestone slowly changes into sandstone over millions of years."],
+      ans:2, why:"Same fossils means same time. A sandy shore and a shallow sea can sit side by side, each building a different kind of rock."},
+  d2:{pts:5, stem:"Site 2 has no Parafusulina zone, and there’s a wavy surface on top of its ash bed. What happened there?",
+      opts:["That stretch of time isn’t recorded at Site 2. Rock was eroded away or never deposited, leaving a gap marked by the wavy surface.","Parafusulina lived at Site 2, but its fossils turned into ash.","The layers at Site 2 were flipped upside down.","The ash bed at Site 2 is actually the Parafusulina zone."],
+      ans:0, why:"The wavy line is an eroded surface. The Parafusulina zone’s time passed, but its rock is missing at this site. That’s a gap in the record."},
+  a1:{pts:4, stem:"Using only superposition and the two ash dates (not the range chart), what’s the best age range for the Parafusulina zone?",
+      opts:["Older than 310 million years","Between 310 and 120 million years","Younger than 120 million years","Exactly 310 million years"],
+      ans:1, why:"It sits above Ash A (310 Ma), so it’s younger than 310 million years, and below Ash B (120 Ma), so it’s older than 120 million years."},
+  a2:{pts:4, stem:"Using the same reasoning, what’s the best age range for the Scaphites zone?",
+      opts:["Older than 310 million years","Between 310 and 120 million years","Exactly 120 million years","Younger than 120 million years"],
+      ans:3, why:"The Scaphites zone sits on top of Ash B, so it formed after 120 million years ago."},
+  a3:{pts:4, stem:"Why are ash beds so useful to geologists?",
+      opts:["They form almost instantly over a wide area, and their crystals can be dated radiometrically.","Ash only falls during mass extinctions, so it marks period boundaries.","Ash beds hold more fossils than any other kind of layer.","Ash layers are always the thickest layers in a column."],
+      ans:0, why:"An ash fall is basically a snapshot: one moment, recorded across a big area, with minerals you can put a number on."},
+  w1:{pts:5, stem:"Your column has no rock from the Silurian, Carboniferous, or Triassic periods. What’s the best explanation?",
+      opts:["Those periods never happened in this part of the world.","Nothing was alive on Earth during those periods.","The range chart must be wrong.","Rock from those times was never deposited in the basin or was later eroded, so the local record has gaps."],
+      ans:3, why:"Time passed everywhere, but rock only builds up where sediment is deposited and survives. That’s why geologists need records from many places."},
+  w2:{pts:5, stem:"A geologist finds a fifth site with shale containing Scaphites, sitting directly on top of an ash bed. Where does this shale fit in your column?",
+      opts:["The same time as the Olenellus zone","Between Ash A and Ash B","The same time as the Scaphites zone, above Ash B","Nowhere, because shale is the wrong rock type for that zone"],
+      ans:2, why:"Scaphites is the index fossil, so the shale matches the Scaphites zone. The rock type doesn’t matter; at Site 3 that zone is shale and at Site 4 it’s sandstone."}
+};
+var MC_ORDER1 = ["d1","d2"], MC_ORDER3 = ["a1","a2","a3"], MC_ORDERW = ["w1","w2"];
+
+/* ================= STATE ================= */
+var S = {
+  ties:[], sel:null, check1:0, done1:false, wrongTies:[],
+  place:{}, picked:null, check2:0, done2:false, locked2:{},
+  per:{}, perAttempts:{}, perLocked:{}, check3:0, done3:false,
+  mc:{} // id -> {tries, done, firstPicks}
+};
+Object.keys(MC).forEach(function(id){ S.mc[id] = {tries:0, done:false}; });
+
+/* ================= HELPERS ================= */
+function $(s){ return document.querySelector(s); }
+function el(tag, attrs, html){ var e=document.createElement(tag); if(attrs) for (var k in attrs) e.setAttribute(k, attrs[k]); if(html!=null) e.innerHTML=html; return e; }
+var NS = "http://www.w3.org/2000/svg";
+
+function icon(kind, cx, cy, sc){
+  sc = sc || 1;
+  var t = "translate("+cx+" "+cy+") scale("+sc+")";
+  var st = 'fill="none" stroke="#1f2a33" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
+  switch(kind){
+    case "tri": return '<g transform="'+t+'" '+st+'><path d="M-8 -6 Q0 -10 8 -6 L7 6 Q0 9 -7 6 Z"/><path d="M-3 -7 V7 M3 -7 V7"/><path d="M-7 -1 H7 M-7 3 H7"/></g>';
+    case "grap": return '<g transform="'+t+'" '+st+'><path d="M-11 4 L11 -4"/><path d="M-8 3 l1 -4 l2 3 M-3 1 l1 -4 l2 3 M2 -1 l1 -4 l2 3 M7 -3 l1 -4 l2 3"/></g>';
+    case "brach": return '<g transform="'+t+'" '+st+'><path d="M-12 3 Q-6 -8 0 -8 Q6 -8 12 3 Q0 6 -12 3 Z"/><path d="M0 -8 V5 M-5 -6 L-6 4 M5 -6 L6 4"/></g>';
+    case "fus": return '<g transform="'+t+'" '+st+'><ellipse rx="10" ry="4"/><path d="M-6 -3 Q-7 0 -6 3 M-2 -4 Q-3 0 -2 4 M2 -4 Q3 0 2 4 M6 -3 Q7 0 6 3"/></g>';
+    case "amm": return '<g transform="'+t+'" '+st+'><path d="M-1.5 0 a1.5 1.5 0 0 1 3 0 a3 3 0 0 1 -6 0 a4.5 4.5 0 0 1 9 0 a6 6 0 0 1 -12 0 a7.5 7.5 0 0 1 15 0"/></g>';
+    case "scaph": return '<g transform="'+t+'" '+st+'><path d="M-6 2 a1.3 1.3 0 0 1 2.6 0 a2.6 2.6 0 0 1 -5.2 0 a3.9 3.9 0 0 1 7.8 0 a5.2 5.2 0 0 1 -10.4 0"/><path d="M-0.8 2 C-0.8 -8 10 -9 10 -1 C10 4 6 5 5 3"/></g>';
+    case "crin": return '<g transform="'+t+'" '+st+'><path d="M-9 -2.5 H9 V2.5 H-9 Z"/><path d="M-5 -2.5 V2.5 M-1 -2.5 V2.5 M3 -2.5 V2.5 M7 -2.5 V2.5"/></g>';
+    case "ash": return '<g transform="'+t+'"><rect x="-11" y="-4" width="22" height="8" rx="1" fill="#e8e4dc" stroke="#8a8f94"/><g fill="#6b7076"><circle cx="-7" cy="0" r=".9"/><circle cx="-2" cy="-1.5" r=".9"/><circle cx="3" cy="1" r=".9"/><circle cx="7" cy="-1" r=".9"/></g></g>';
+    default: return '<g transform="'+t+'"><path d="M-9 0 H9" stroke="#8a8f94" stroke-width="1.6" stroke-dasharray="2 3"/></g>';
+  }
+}
+function miniSvg(kind){ return '<svg viewBox="0 0 40 28" aria-hidden="true">'+(kind==="ash"?'<rect x="0" y="6" width="40" height="16" rx="3" fill="#e8e4dc"/>':'')+icon(kind,20,14,1.15)+'</svg>'; }
+
+function defs(p){ return '<defs>'+
+  '<pattern id="'+p+'Sand" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#d6b97f"/><circle cx="2" cy="2" r=".9" fill="#94763f"/><circle cx="6" cy="6" r=".9" fill="#94763f"/></pattern>'+
+  '<pattern id="'+p+'Shale" width="10" height="6" patternUnits="userSpaceOnUse"><rect width="10" height="6" fill="#8aa1ad"/><line x1="0" y1="3" x2="10" y2="3" stroke="#647b87" stroke-width="1"/></pattern>'+
+  '<pattern id="'+p+'Lime" width="16" height="10" patternUnits="userSpaceOnUse"><rect width="16" height="10" fill="#b4c4b3"/><path d="M0 0 H16 M0 5 H16 M8 0 V5 M0 5 V10" stroke="#869a86" stroke-width="1"/></pattern>'+
+  '<pattern id="'+p+'Ash" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#d9d6d0"/><circle cx="1.5" cy="1.5" r=".9" fill="#3d4247"/><circle cx="4.5" cy="4.5" r=".9" fill="#3d4247"/></pattern>'+
+  '<pattern id="'+p+'AshB" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#f7f1ec"/><circle cx="1.5" cy="1.5" r=".8" fill="#d39a86"/><circle cx="4.5" cy="4.5" r=".8" fill="#d39a86"/></pattern>'+
+  '</defs>'; }
+function fills(p){ return {sand:"url(#"+p+"Sand)", shale:"url(#"+p+"Shale)", lime:"url(#"+p+"Lime)", ash:"url(#"+p+"Ash)", ashB:"url(#"+p+"AshB)"}; }
+
+function drawSites(svg, interactive, opts){
+  opts = opts || {};
+  var pre = opts.pre || "p", FILL = fills(pre);
+  var h = defs(pre);
+  // labels
+  SITES.forEach(function(s, i){
+    h += '<text x="'+(COLX[i]+COLW/2)+'" y="'+(s.top-12)+'" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="14" font-weight="600" fill="#1f2a33">'+s.name+'</text>';
+  });
+  // layers
+  SITES.forEach(function(s, i){
+    s.layers.forEach(function(L, li){
+      h += '<rect x="'+COLX[i]+'" y="'+L.y0+'" width="'+COLW+'" height="'+L.h+'" fill="'+(L.k==="AB"?FILL.ashB:FILL[L.rock])+'" stroke="#1f2a33" stroke-width=".8"/>';
+      var u = UNITS[L.k];
+      if (u.icon !== "ash" && u.icon !== "none") h += icon(u.icon, COLX[i]+(L.crin?38:50), L.mid, 1.05);
+      if (L.crin) h += icon("crin", COLX[i]+74, L.mid, .9);
+      if (L.unc) h += '<path d="M'+COLX[i]+' '+L.y0+' q12.5 -6 25 0 t25 0 t25 0 t25 0" fill="none" stroke="#b5461f" stroke-width="2.6"/>';
+    });
+    h += '<rect x="'+COLX[i]+'" y="'+s.top+'" width="'+COLW+'" height="'+(s.base-s.top)+'" fill="none" stroke="#1f2a33" stroke-width="1.4"/>';
+  });
+  // legend
+  h += '<g font-family="IBM Plex Sans, sans-serif" font-size="12" fill="#5d6872">'+
+       '<rect x="50" y="328" width="14" height="10" fill="'+FILL.sand+'"/><text x="70" y="337">Sandstone</text>'+
+       '<rect x="150" y="328" width="14" height="10" fill="'+FILL.shale+'"/><text x="170" y="337">Shale</text>'+
+       '<rect x="225" y="328" width="14" height="10" fill="'+FILL.lime+'"/><text x="245" y="337">Limestone</text>'+
+       '<rect x="320" y="328" width="14" height="10" fill="'+FILL.ash+'" stroke="#999"/><text x="340" y="337">Volcanic ash</text>'+
+       '<line x1="435" y1="333" x2="457" y2="333" stroke="#b5461f" stroke-width="2.6"/><text x="463" y="337">Eroded surface</text></g>';
+  // ties
+  h += '<g id="'+(opts.tieId||"ties")+'"></g>';
+  // hit areas
+  if (interactive){
+    SITES.forEach(function(s, i){
+      s.layers.forEach(function(L, li){
+        h += '<rect class="layer-hit" data-s="'+i+'" data-l="'+li+'" x="'+COLX[i]+'" y="'+L.y0+'" width="'+COLW+'" height="'+L.h+'" tabindex="0" role="button" aria-label="'+s.name+', '+ROCK[L.rock]+' layer '+(li+1)+' from the bottom"/>';
+      });
+    });
+  }
+  svg.innerHTML = h;
+}
+function tiePath(t){
+  var a = t.split("|"), A = a[0].split(":").map(Number), B = a[1].split(":").map(Number);
+  var x1 = COLX[A[0]]+COLW, y1 = SITES[A[0]].layers[A[1]].mid, x2 = COLX[B[0]], y2 = SITES[B[0]].layers[B[1]].mid;
+  return "M"+x1+" "+y1+" L"+x2+" "+y2;
+}
+function renderTies(g, ties, marks, interactive){
+  var h = "";
+  ties.forEach(function(t){
+    var cls = "tie" + (marks && marks[t] ? " "+marks[t] : "");
+    h += '<path class="'+cls+'" d="'+tiePath(t)+'"/>';
+    if (interactive) h += '<path class="tie-hit" data-t="'+t+'" d="'+tiePath(t)+'"><title>Remove this tie</title></path>';
+  });
+  g.innerHTML = h;
+}
+
+/* ================= TABS ================= */
+var tabs = document.querySelectorAll(".tab");
+function go(name){
+  tabs.forEach(function(t){ t.setAttribute("aria-selected", t.dataset.tab===name ? "true":"false"); });
+  document.querySelectorAll(".panel").forEach(function(p){ p.hidden = p.id !== "p-"+name; });
+  if (name === "report") renderReport();
+  if (name === "inv2") renderRef();
+  window.scrollTo(0,0);
+}
+tabs.forEach(function(t){ t.addEventListener("click", function(){ if(!t.disabled) go(t.dataset.tab); }); });
+document.addEventListener("click", function(e){ var b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
+function unlock(name){ var t = document.querySelector('.tab[data-tab="'+name+'"]'); t.disabled = false; var l = t.querySelector(".lock"); if (l) l.remove(); }
+
+/* ================= INV 1 ================= */
+var sitesSvg = $("#sites"), info = $("#info");
+drawSites(sitesSvg, true);
+var tieG = sitesSvg.querySelector("#ties");
+function tieKey(a, b){ return a[0] < b[0] ? a.join(":")+"|"+b.join(":") : b.join(":")+"|"+a.join(":"); }
+
+function showInfo(si, li){
+  if (si == null){
+    info.innerHTML = '<h4>Field notes</h4><p class="hint">Select a layer to see its rock type and fossils.</p><p class="hint" style="margin-top:.6rem">Ties so far: <strong>'+S.ties.length+'</strong></p>';
+    return;
+  }
+  var L = SITES[si].layers[li], u = UNITS[L.k];
+  var f = [];
+  if (u.fossil) f.push(u.fossil);
+  if (L.crin) f.push("Crinoid stems");
+  var h = '<h4>'+SITES[si].name+'</h4><p class="rock">'+ROCK[L.rock]+'</p>';
+  h += f.length ? '<p style="margin:0">Fossils found:</p><ul>'+f.map(function(x){return "<li>"+x+"</li>";}).join("")+'</ul>' : '<p>'+(u.ash ? "No fossils. Each eruption leaves ash with its own mix of crystals, like a fingerprint. Under the microscope, this ash is: <strong>"+u.print.charAt(0).toLowerCase()+u.print.slice(1)+"</strong>." : "No fossils found.")+'</p>';
+  if (L.unc) h += '<p class="hint" style="color:var(--ember)">The top of this layer is an uneven, eroded surface.</p>';
+  h += S.done1 ? '' : '<p class="hint">Now select a layer in a neighboring site to connect it, or select this layer again to cancel.</p>';
+  info.innerHTML = h;
+}
+function clickLayer(si, li){
+  if (S.done1){ showInfo(si, li); return; }
+  if (!S.sel){ S.sel = [si, li]; markSel(); showInfo(si, li); return; }
+  if (S.sel[0] === si && S.sel[1] === li){ S.sel = null; markSel(); showInfo(null); return; }
+  if (Math.abs(S.sel[0] - si) !== 1){
+    S.sel = [si, li]; markSel(); showInfo(si, li);
+    info.insertAdjacentHTML("beforeend", '<p class="hint" style="color:var(--ember)">Tie lines connect neighboring sites only, so you started a new selection here.</p>');
+    return;
+  }
+  var k = tieKey(S.sel, [si, li]);
+  if (S.ties.indexOf(k) < 0) S.ties.push(k);
+  S.sel = null; markSel(); S.wrongTies = [];
+  renderTies(tieG, S.ties, null, true); showInfo(null); staleFb();
+}
+function staleFb(){ if ($("#fb1").innerHTML) $("#fb1").innerHTML = '<div class="feedback" style="background:var(--surface);border:1px solid var(--line)">You changed your ties. Select <strong>Check my correlations</strong> again to see which ones are right.</div>'; }
+function markSel(){
+  sitesSvg.querySelectorAll(".layer-hit").forEach(function(r){
+    var on = S.sel && +r.dataset.s === S.sel[0] && +r.dataset.l === S.sel[1];
+    r.classList.toggle("sel", !!on);
+  });
+}
+sitesSvg.addEventListener("click", function(e){
+  var t = e.target.closest(".tie-hit");
+  if (t && !S.done1){ S.ties = S.ties.filter(function(x){ return x !== t.dataset.t; }); S.wrongTies = []; renderTies(tieG, S.ties, null, true); showInfo(null); staleFb(); return; }
+  var r = e.target.closest(".layer-hit");
+  if (r) clickLayer(+r.dataset.s, +r.dataset.l);
+});
+sitesSvg.addEventListener("keydown", function(e){
+  if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("layer-hit")){ e.preventDefault(); clickLayer(+e.target.dataset.s, +e.target.dataset.l); }
+});
+showInfo(null);
+
+$("#clear1").addEventListener("click", function(){ if (S.done1) return; S.ties = []; S.sel = null; markSel(); renderTies(tieG, S.ties, null, true); showInfo(null); $("#fb1").innerHTML = ""; });
+
+function layerOf(code){ var p = code.split(":").map(Number); return SITES[p[0]].layers[p[1]]; }
+$("#check1").addEventListener("click", function(){
+  if (S.done1) return;
+  if (!S.ties.length){ $("#fb1").innerHTML = '<div class="feedback no">Make at least one tie before checking.</div>'; return; }
+  S.check1++;
+  var marks = {}, wrong = [], kinds = {rock:0, fossil:0, barren:0, ash:0};
+  S.ties.forEach(function(t){
+    if (EXPECTED.indexOf(t) >= 0){ marks[t] = "good"; return; }
+    marks[t] = "bad"; wrong.push(t);
+    var ab = t.split("|"), A = layerOf(ab[0]), B = layerOf(ab[1]);
+    if (A.k === "BS" || B.k === "BS") kinds.barren++;
+    else if (A.rock === "ash" && B.rock === "ash") kinds.ash++;
+    else if (A.rock === B.rock) kinds.rock++;
+    else kinds.fossil++;
+  });
+  var missing = EXPECTED.filter(function(t){ return S.ties.indexOf(t) < 0; }).length;
+  renderTies(tieG, S.ties, marks, true);
+  $("#att1").textContent = "Checks used: "+S.check1;
+  if (!wrong.length && !missing){
+    S.done1 = true;
+    $("#fb1").innerHTML = '<div class="feedback ok"><strong>All 8 correlations are correct.</strong> Notice that you matched layers by their fossils and ash beds, not by what the rock looked like. Answer the two questions below to unlock Investigation 2.</div>';
+    $("#check1").disabled = true; $("#clear1").disabled = true;
+    renderMC($("#disc1"), MC_ORDER1, '<h3>What did you discover?</h3>', checkInv1Done);
+    sitesSvg.querySelectorAll(".tie-hit").forEach(function(x){ x.remove(); });
+    return;
+  }
+  var tips = [];
+  if (kinds.rock) tips.push(kinds.rock+" of your red ties "+(kinds.rock>1?"connect":"connects")+" layers with the same rock type but different fossils. Looking alike doesn’t mean forming at the same time.");
+  if (kinds.fossil) tips.push(kinds.fossil+" of your red ties "+(kinds.fossil>1?"connect":"connects")+" layers that don’t share the same index fossil or ash bed. Crinoids show up in lots of layers, so they can’t pin down a time.");
+  if (kinds.ash) tips.push(kinds.ash+" of your red ties "+(kinds.ash>1?"connect":"connects")+" two ash beds from different eruptions. Select each ash bed and compare its crystal fingerprint, and check which fossils sit above and below it.");
+  if (kinds.barren) tips.push("One of your red ties uses the fossil-free sandstone at the top of Site 4. With no fossils or ash, there’s no evidence it matches anything.");
+  if (missing) tips.push("You’re missing "+missing+" correct "+(missing>1?"ties":"tie")+". Check every neighboring pair of sites, including the thin ash beds.");
+  $("#fb1").innerHTML = '<div class="feedback no"><strong>Not quite yet.</strong> Red dashed ties are incorrect; select one to remove it.<ul>'+tips.map(function(x){return "<li>"+x+"</li>";}).join("")+'</ul></div>';
+});
+function checkInv1Done(){
+  if (MC_ORDER1.every(function(id){ return S.mc[id].done; })){
+    unlock("inv2");
+    if (!$("#go2")) $("#disc1").insertAdjacentHTML("beforeend", '<div class="row"><button class="btn primary" id="go2" data-go="inv2">Go to Investigation 2</button></div>');
+  }
+}
+
+/* ================= MC ================= */
+var LET = ["A","B","C","D"];
+function renderMC(host, ids, heading, onDone){
+  var h = heading || "";
+  ids.forEach(function(id){
+    var q = MC[id];
+    h += '<div class="q" data-q="'+id+'"><p class="stem">'+q.stem+'</p><div class="opts">'+
+      q.opts.map(function(o, i){ return '<button class="opt" data-i="'+i+'"><b>'+LET[i]+'</b><span>'+o+'</span></button>'; }).join("")+
+      '</div><p class="fb" aria-live="polite"></p></div>';
+  });
+  host.innerHTML = h;
+  host.querySelectorAll(".q").forEach(function(qe){
+    var id = qe.dataset.q, q = MC[id];
+    qe.querySelectorAll(".opt").forEach(function(b){
+      b.addEventListener("click", function(){
+        var st = S.mc[id]; if (st.done) return;
+        st.tries++;
+        var i = +b.dataset.i;
+        if (i === q.ans){
+          st.done = true;
+          b.classList.add("right");
+          qe.querySelectorAll(".opt").forEach(function(x){ x.disabled = true; });
+          qe.querySelector(".fb").innerHTML = '<strong style="color:var(--teal)">Correct.</strong> '+q.why;
+          if (onDone) onDone();
+        } else {
+          b.classList.add("wrong"); b.disabled = true;
+          qe.querySelector(".fb").innerHTML = '<strong style="color:var(--ember)">Not quite.</strong> Try again.';
+        }
+      });
+    });
+  });
+}
+function mcScore(id){
+  var st = S.mc[id], q = MC[id];
+  if (!st.done) return 0;
+  var full = q.pts;
+  if (st.tries === 1) return full;
+  if (st.tries === 2) return full === 5 ? 3 : 3;
+  return 2;
+}
+
+/* ================= INV 2 ================= */
+var refSvg = $("#sitesRef");
+function renderRef(){
+  drawSites(refSvg, false, {tieId:"refties", pre:"r"});
+  renderTies(refSvg.querySelector("#refties"), S.ties, null, false);
+}
+var shuffled = ["Z5","AA","Z2","BS","Z4","AB","Z1","Z6","Z3"];
+function renderBuilder(){
+  var tray = $("#tray"), stack = $("#stack");
+  var placed = {}; Object.keys(S.place).forEach(function(slot){ placed[S.place[slot]] = true; });
+  tray.innerHTML = shuffled.map(function(k){
+    var u = UNITS[k];
+    var lbl = u.fossil ? u.name+'<br><span class="muted" style="font-size:.88rem">'+u.fossil+'</span>' : u.name;
+    return '<button class="unit'+(S.picked===k?" picked":"")+'" data-u="'+k+'"'+(placed[k]?" disabled":"")+'>'+miniSvg(u.icon)+'<span>'+lbl+'</span></button>';
+  }).join("");
+  var h = "";
+  for (var i = ORDER.length-1; i >= 0; i--){
+    var k = S.place[i], u = k ? UNITS[k] : null;
+    var cls = "slot" + (k?" filled":"") + (S.locked2[i]?" locked":"") + (S.bounce && S.bounce[i]?" bounce":"");
+    h += '<button class="'+cls+'" data-slot="'+i+'"'+(S.locked2[i]?' aria-disabled="true"':'')+'><span class="n">'+(i===0?"1 (oldest)":i===ORDER.length-1?(i+1)+" (youngest)":(i+1))+'</span>'+
+      (u ? miniSvg(u.icon)+'<span>'+u.name+'</span>' : '<span>Empty</span>')+'</button>';
+  }
+  stack.innerHTML = h;
+}
+$("#tray").addEventListener("click", function(e){
+  var b = e.target.closest(".unit"); if (!b || b.disabled || S.done2) return;
+  S.picked = S.picked === b.dataset.u ? null : b.dataset.u; renderBuilder();
+});
+$("#stack").addEventListener("click", function(e){
+  var b = e.target.closest(".slot"); if (!b || S.done2) return;
+  var i = +b.dataset.slot; if (S.locked2[i]) return;
+  S.bounce = null;
+  if (S.picked){ S.place[i] = S.picked; S.picked = null; }
+  else if (S.place[i]){ delete S.place[i]; }
+  renderBuilder();
+});
+$("#check2").addEventListener("click", function(){
+  if (S.done2) return;
+  if (Object.keys(S.place).length < ORDER.length){ $("#fb2").innerHTML = '<div class="feedback no">Fill all nine slots before checking.</div>'; return; }
+  S.check2++;
+  var wrong = 0; S.bounce = {};
+  for (var i = 0; i < ORDER.length; i++){
+    if (S.place[i] === ORDER[i]) S.locked2[i] = true;
+    else { wrong++; S.bounce[i] = true; delete S.place[i]; }
+  }
+  $("#att2").textContent = "Checks used: "+S.check2;
+  renderBuilder();
+  if (!wrong){
+    S.done2 = true; unlock("inv3"); $("#check2").disabled = true;
+    $("#fb2").innerHTML = '<div class="feedback ok"><strong>Your composite column is complete.</strong> No single site had all nine units, but correlation let you stitch them into one sequence. That’s exactly how the geologic time scale was assembled, just across the whole planet.</div><div class="row"><button class="btn primary" data-go="inv3">Go to Investigation 3</button></div>';
+  } else {
+    $("#fb2").innerHTML = '<div class="feedback no"><strong>'+(ORDER.length-wrong)+' of 9 are in the right place</strong> and are now locked in. The others went back to the tray. Tip: pick a unit, find it in your correlated sites, and look at what’s directly above and below it.</div>';
+  }
+});
+renderBuilder();
+
+/* ================= INV 3 ================= */
+function drawRange(){
+  var svg = $("#range"), x0 = 250, w = (760 - x0 - 10) / PERIODS.length, h = "";
+  PERIODS.forEach(function(p, i){
+    var x = x0 + i*w;
+    h += '<rect x="'+x+'" y="20" width="'+w+'" height="90" fill="'+PCOL[p]+'" stroke="#fff"/>';
+    h += '<text transform="translate('+(x+w/2+4)+' 104) rotate(-90)" font-family="IBM Plex Sans, sans-serif" font-size="11" font-weight="600" fill="'+(["Ordovician","Triassic"].indexOf(p)>=0?"#fff":"#1f2a33")+'">'+p+'</text>';
+  });
+  h += '<text x="'+x0+'" y="14" font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#5d6872">Older</text><text x="750" y="14" text-anchor="end" font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#5d6872">Younger</text>';
+  RANGES.forEach(function(r, j){
+    var y = 125 + j*31;
+    h += '<line x1="'+x0+'" x2="750" y1="'+(y+8)+'" y2="'+(y+8)+'" stroke="#e3e6e4"/>';
+    h += icon(r[3], 18, y+8, .95);
+    h += '<text x="36" y="'+(y+12)+'" font-family="IBM Plex Sans, sans-serif" font-size="12.5" fill="#1f2a33">'+r[0]+'</text>';
+    var bx = x0 + r[1]*w + 4, bw = (r[2]-r[1]+1)*w - 8;
+    h += '<rect x="'+bx+'" y="'+(y+2)+'" width="'+bw+'" height="12" rx="6" fill="#1f2a33"/>';
+  });
+  PERIODS.forEach(function(p, i){ h += '<line x1="'+(x0+i*w)+'" x2="'+(x0+i*w)+'" y1="110" y2="345" stroke="#e3e6e4"/>'; });
+  svg.innerHTML = h;
+}
+drawRange();
+var ZONES = ["Z1","Z2","Z3","Z4","Z5","Z6"];
+function renderAssign(){
+  var tb = $("#assign tbody");
+  tb.innerHTML = ZONES.slice().reverse().map(function(k){
+    var u = UNITS[k], locked = S.perLocked[k], cls = locked ? "locked" : (S.perWrong && S.perWrong[k] ? "wrongrow" : "");
+    var sel = '<select data-z="'+k+'"'+(locked?" disabled":"")+' aria-label="Period for '+u.name+'"><option value="">Choose…</option>'+
+      PERIODS.map(function(p){ return '<option'+(S.per[k]===p?" selected":"")+'>'+p+'</option>'; }).join("")+'</select>';
+    return '<tr class="'+cls+'"><td><span class="mini">'+miniSvg(u.icon)+'<span>'+u.name+'</span></span></td><td>'+sel+(locked?' <span style="color:var(--teal);font-weight:600">✓</span>':'')+'</td></tr>';
+  }).join("");
+}
+$("#assign").addEventListener("change", function(e){ var s = e.target.closest("select"); if (s){ S.per[s.dataset.z] = s.value; } });
+$("#check3").addEventListener("click", function(){
+  if (S.done3) return;
+  if (ZONES.some(function(k){ return !S.per[k]; })){ $("#fb3").innerHTML = '<div class="feedback no">Choose a period for every zone before checking.</div>'; return; }
+  S.check3++; S.perWrong = {};
+  var wrong = 0;
+  ZONES.forEach(function(k){
+    if (S.perLocked[k]) return;
+    S.perAttempts[k] = (S.perAttempts[k]||0) + 1;
+    if (S.per[k] === UNITS[k].period) S.perLocked[k] = true;
+    else { wrong++; S.perWrong[k] = true; }
+  });
+  $("#att3").textContent = "Checks used: "+S.check3;
+  renderAssign();
+  if (!wrong){
+    S.done3 = true; $("#check3").disabled = true;
+    $("#fb3").innerHTML = '<div class="feedback ok"><strong>All six periods are correct.</strong> Notice that crinoids weren’t on your list. Their range bar stretches across almost the whole chart, which is why they’re useless for dating a layer.</div>';
+    $("#partB").hidden = false;
+    renderTS($("#tscol"));
+    renderMC($("#mc3"), MC_ORDER3, "", checkInv3);
+  } else {
+    $("#fb3").innerHTML = '<div class="feedback no"><strong>'+wrong+' '+(wrong>1?"zones need":"zone needs")+' another look.</strong> Find the zone’s fossil on the range chart, follow its bar up to the colored period labels, and check your answer against the order of your column.</div>';
+  }
+});
+renderAssign();
+function renderTS(host){
+  var h = "";
+  for (var i = ORDER.length-1; i >= 0; i--){
+    var u = UNITS[ORDER[i]];
+    if (u.ash) h += '<div class="ts-row" style="background:#ece8e0;border:1px dashed #8a8f94"><span>'+u.name+'</span><span class="age">'+u.age+' million years</span></div>';
+    else if (u.period) h += '<div class="ts-row" style="background:'+PCOL[u.period]+(u.period==="Ordovician"?";color:#fff":"")+'"><span>'+u.name+'</span><span class="age">'+u.period+'</span></div>';
+    else h += '<div class="ts-row" style="background:#f1ece0"><span>'+u.name+'</span><span class="age">Younger than the Scaphites zone</span></div>';
+  }
+  host.innerHTML = h;
+}
+function checkInv3(){
+  if (MC_ORDER3.every(function(id){ return S.mc[id].done; }) && $("#wrapup").hidden){
+    $("#wrapup").hidden = false;
+    renderMC($("#mcw"), MC_ORDERW, "", function(){});
+  }
+}
+
+/* ================= SCORING & REPORT ================= */
+function tiered(n, full){ if (!n) return 0; return [0, full, Math.round(full*.8), Math.round(full*.6)][Math.min(n,3)] || Math.round(full*.4); }
+function scoreParts(){
+  var corr = S.done1 ? (S.check1 <= 3 ? [0,30,24,18][S.check1] : 12) : 0;
+  var comp = S.done2 ? (S.check2 <= 3 ? [0,20,16,12][S.check2] : 8) : 0;
+  var per = 0; ZONES.forEach(function(k){ if (S.perLocked[k]) per += S.perAttempts[k]===1 ? 3 : S.perAttempts[k]===2 ? 2 : 1; });
+  return [
+    {label:"Correlating the four sites", pts:corr, max:30, note:S.done1 ? "Finished in "+S.check1+" check"+(S.check1>1?"s":"") : "Not finished"},
+    {label:"Discovery questions", pts:mcScore("d1")+mcScore("d2"), max:10},
+    {label:"Composite column", pts:comp, max:20, note:S.done2 ? "Finished in "+S.check2+" check"+(S.check2>1?"s":"") : "Not finished"},
+    {label:"Identifying periods from the range chart", pts:per, max:18},
+    {label:"Dating with ash beds", pts:mcScore("a1")+mcScore("a2")+mcScore("a3"), max:12},
+    {label:"Wrap-up questions", pts:mcScore("w1")+mcScore("w2"), max:10}
+  ];
+}
+function renderReport(){
+  var parts = scoreParts(), total = parts.reduce(function(a, p){ return a + p.pts; }, 0);
+  $("#rscore").textContent = total;
+  $("#rtable").innerHTML = '<tr><th>Section</th><th class="pts">Points</th></tr>'+
+    parts.map(function(p){ return '<tr><td>'+p.label+(p.note?' <span class="muted" style="font-size:.86rem">('+p.note+')</span>':'')+'</td><td class="pts">'+p.pts+' / '+p.max+'</td></tr>'; }).join("")+
+    '<tr class="total"><td>Total</td><td class="pts">'+total+' / 100</td></tr>';
+  var allDone = S.done1 && S.done2 && S.done3 && Object.keys(S.mc).every(function(id){ return S.mc[id].done; });
+  $("#rstatus").textContent = allDone ? "You’ve finished every section. Save your report as a PDF and turn it in." : "Some sections aren’t finished yet. Your score will go up as you complete them.";
+  var snap = document.createElementNS(NS, "svg"); snap.setAttribute("viewBox","0 0 760 350");
+  drawSites(snap, false, {tieId:"snapties", pre:"s"});
+  var marks = {}; S.ties.forEach(function(t){ marks[t] = EXPECTED.indexOf(t)>=0 ? "good" : "bad"; });
+  renderTies(snap.querySelector("#snapties"), S.ties, marks, false);
+  $("#rsnap").innerHTML = ""; $("#rsnap").appendChild(snap);
+  if (S.done3) renderTS($("#rts")); else $("#rts").innerHTML = '<p class="muted">Finish Investigation 3 to fill in your time scale.</p>';
+}
+$("#rdate").value = new Date().toLocaleDateString();
+$("#print").addEventListener("click", function(){ if (document.activeElement) document.activeElement.blur(); renderReport(); window.print(); });
+
+window.__lab = {S:S, EXPECTED:EXPECTED, ORDER:ORDER, MC:MC, scoreParts:scoreParts, go:go};
+})();
+</script>
+</body>
+</html>
